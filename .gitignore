@@ -1,0 +1,20 @@
+## Build results
+bin/
+obj/
+
+## Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+## ASP.NET Core
+appsettings.Development.json
+
+## EF Core
+Migrations/
+
+## OS
+.DS_Store
+Thumbs.db
