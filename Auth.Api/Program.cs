@@ -1,5 +1,7 @@
 
 using Auth.Api.Data;
+using Auth.Api.Repositories;
+using Auth.Api.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace Auth.Api
@@ -21,6 +23,9 @@ namespace Auth.Api
             {
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
             });
+
+            builder.Services.AddScoped<IUserRepository, UserRepository>();
+            builder.Services.AddScoped<IAuthService, AuthService>();
 
             var app = builder.Build();
 
