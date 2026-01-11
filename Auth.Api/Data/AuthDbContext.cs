@@ -44,6 +44,10 @@ public class AuthDbContext(DbContextOptions<AuthDbContext> options) : DbContext(
                 .Property(u => u.PasswordHash)
                 .HasColumnName("password_hash")
                 .IsRequired();
+            entity
+                .Property(u => u.Role)
+                .HasColumnName("role")
+                .IsRequired();
         });
     }
 }

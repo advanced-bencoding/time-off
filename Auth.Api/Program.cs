@@ -1,5 +1,6 @@
 
 using Auth.Api.Data;
+using Auth.Api.DTOs;
 using Auth.Api.Repositories;
 using Auth.Api.Services;
 using Microsoft.EntityFrameworkCore;
@@ -12,9 +13,12 @@ namespace Auth.Api
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
-
+            
             builder.Services.AddControllers();
+
+            // options
+            builder.Services.Configure<JwtConfig>(builder.Configuration.GetSection("Jwt"));
+
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
@@ -24,12 +28,15 @@ namespace Auth.Api
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
             });
 
-            builder.Services.AddScoped<IUserRepository, UserRepository>();
+            // services
             builder.Services.AddScoped<IAuthService, AuthService>();
+            builder.Services.AddScoped<ITokenService, TokenService>();
+
+            // repositories
+            builder.Services.AddScoped<IUserRepository, UserRepository>();
 
             var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
@@ -39,7 +46,6 @@ namespace Auth.Api
             app.UseHttpsRedirection();
 
             app.UseAuthorization();
-
 
             app.MapControllers();
 

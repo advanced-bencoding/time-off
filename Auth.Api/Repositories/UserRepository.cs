@@ -18,4 +18,9 @@ public class UserRepository(AuthDbContext dbContext) : IUserRepository
     {
         return await _context.Users.AnyAsync(u => u.Email == email, cancellationToken);
     }
+
+    public async Task<User?> GetByEmail(string email, CancellationToken cancellationToken)
+    {
+        return await _context.Users.FirstOrDefaultAsync(user =>  user.Email == email, cancellationToken);
+    }
 }
