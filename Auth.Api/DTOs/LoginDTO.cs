@@ -1,7 +1,11 @@
-﻿namespace Auth.Api.DTOs;
+﻿using System.ComponentModel.DataAnnotations;
 
-public record struct LoginDTO
-(
-    string EmailId,
-    string Password
-);
+namespace Auth.Api.DTOs;
+
+public class LoginDTO
+{
+    [Required]
+    [EmailAddress]
+    public string EmailId { get; set; } = string.Empty;
+    public string Password { get; set; } = string.Empty;
+};

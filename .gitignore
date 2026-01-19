@@ -9,12 +9,18 @@ obj/
 *.userosscache
 *.sln.docstates
 
-## ASP.NET Core
-appsettings.Development.json
+## IDE folders
+.vscode/
+.idea/
 
-## EF Core
-Migrations/
+## Logs
+*.log
+logs/
 
-## OS
+## OS Files
 .DS_Store
 Thumbs.db
+
+## Redis (sometimes persists if used locally)
+dump.rdb
+appendonly.aof

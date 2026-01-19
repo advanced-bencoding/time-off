@@ -64,7 +64,7 @@ public class AuthService(IUserRepository userRepository, ITokenService tokenServ
             UserId = Guid.NewGuid(),
             Role = "employee"            
         };
-        user.PasswordHash = _passwordHasher.HashPassword(user, userDTO.PasswordHash);
+        user.PasswordHash = _passwordHasher.HashPassword(user, userDTO.Password);
 
         await _userRepository.AddAsync(user, cancellationToken);
 

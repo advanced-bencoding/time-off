@@ -1,6 +1,7 @@
 
 using Auth.Api.Data;
 using Auth.Api.DTOs;
+using Auth.Api.Middleware;
 using Auth.Api.Repositories;
 using Auth.Api.Services;
 using Microsoft.EntityFrameworkCore;
@@ -45,6 +46,8 @@ namespace Auth.Api
             builder.Services.AddScoped<IUserRepository, UserRepository>();
 
             var app = builder.Build();
+
+            app.UseMiddleware<ExceptionMiddleware>();
 
             if (app.Environment.IsDevelopment())
             {
