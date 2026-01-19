@@ -2,25 +2,50 @@
 using Auth.Api.Models;
 using Auth.Api.Repositories;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Options;
 
 namespace Auth.Api.Services;
 
-public class AuthService(IUserRepository userRepository, ITokenService tokenService) : IAuthService
+public class AuthService(IUserRepository userRepository, ITokenService tokenService, IRefreshTokenStore refreshTokenStore, IOptions<RefreshTokenConfig> refreshTokenOptions) : IAuthService
 {
     private readonly IUserRepository _userRepository = userRepository;
     private readonly ITokenService _tokenService = tokenService;
+    private readonly IRefreshTokenStore _refreshTokenStore = refreshTokenStore;
     private readonly PasswordHasher<User> _passwordHasher = new();
+    private readonly RefreshTokenConfig _refreshTokenConfig = refreshTokenOptions.Value;
 
-    public async Task<Result<string>> LoginAsync(LoginDTO loginDTO, CancellationToken cancellationToken)
+    public async Task<Result<LoginResponseDTO>> LoginAsync(LoginDTO loginDTO, CancellationToken cancellationToken)
     {
-        var user = await _userRepository.GetByEmail(loginDTO.EmailId, cancellationToken);
-        if (user == null) return Result<string>.Failure("Invalid email or password");
+        var user = await _userRepository.GetByEmailAsync(loginDTO.EmailId, cancellationToken);
+        if (user == null) return Result<LoginResponseDTO>.Failure("Invalid email or password");
         
         var passwordVerification = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, loginDTO.Password);
-        if (passwordVerification == PasswordVerificationResult.Failed) return Result<string>.Failure("Invalid email or password");
+        if (passwordVerification == PasswordVerificationResult.Failed) return Result<LoginResponseDTO>.Failure("Invalid email or password");
 
         var accessToken = _tokenService.GenerateToken(user);
-        return Result<string>.Success(accessToken);
+        var refreshToken = Guid.NewGuid().ToString();
+
+        await _refreshTokenStore.StoreAsync(refreshToken, user.UserId, TimeSpan.FromDays(_refreshTokenConfig.ExpiryDays));
+
+        return Result<LoginResponseDTO>.Success(new LoginResponseDTO(accessToken, refreshToken));
+    }
+
+    public async Task<Result<LoginResponseDTO>> RefreshAsync(string refreshToken, CancellationToken cancellationToken)
+    {
+        var userId = await _refreshTokenStore.GetUserIdAsync(refreshToken);
+        if (userId == null) return Result<LoginResponseDTO>.Failure("Invalid or expired refresh token");
+
+        await _refreshTokenStore.RemoveAsync(refreshToken);
+
+        var user = await _userRepository.GetByIdAsync(userId.Value, cancellationToken);
+        if (user == null) return Result<LoginResponseDTO>.Failure("Invalid or expired refresh token");
+
+        var accessToken = _tokenService.GenerateToken(user);
+        var refreshTokenNew = Guid.NewGuid().ToString();
+
+        await _refreshTokenStore.StoreAsync(refreshTokenNew, user.UserId, TimeSpan.FromDays(_refreshTokenConfig.ExpiryDays));
+
+        return Result<LoginResponseDTO>.Success(new LoginResponseDTO(accessToken, refreshToken));
     }
 
     public async Task<Result<RegisterUserDTO>> RegisterAsync(RegisterUserDTO userDTO, CancellationToken cancellationToken)
