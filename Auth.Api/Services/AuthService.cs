@@ -70,4 +70,10 @@ public class AuthService(IUserRepository userRepository, ITokenService tokenServ
 
         return Result<RegisterUserDTO>.Success(userDTO);
     }
+
+    public async Task<Result<bool>> LogoutAsync(string refreshToken)
+    {
+        await _refreshTokenStore.RemoveAsync(refreshToken);
+        return Result<bool>.Success(true);
+    }
 }

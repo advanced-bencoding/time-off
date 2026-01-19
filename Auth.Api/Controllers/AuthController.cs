@@ -1,5 +1,4 @@
 ﻿using Auth.Api.DTOs;
-using Auth.Api.Repositories;
 using Auth.Api.Services;
 using Auth.Api.Utilities;
 using Microsoft.AspNetCore.Mvc;
@@ -28,5 +27,22 @@ public class AuthController(IAuthService authService) : ControllerBase
         var apiResponse = ControllerHelper.MapServiceResultToApiResponse(result);
         if (apiResponse.IsSuccess) return Ok(apiResponse);
         return Unauthorized(apiResponse);
+    }
+
+    [HttpPost("refresh")]
+    public async Task<IActionResult> Refresh(string refreshToken, CancellationToken cancellationToken)
+    {
+        var result = await _authService.RefreshAsync(refreshToken, cancellationToken);
+        var apiResponse = ControllerHelper.MapServiceResultToApiResponse(result);
+        if (apiResponse.IsSuccess) return Ok(apiResponse);
+        return Unauthorized(apiResponse);
+    }
+
+    [HttpPost("logout")]
+    public async Task<IActionResult> Logout(string refreshToken)
+    {
+        var result = await _authService.LogoutAsync(refreshToken);
+        var apiResponse = ControllerHelper.MapServiceResultToApiResponse(result);
+        return Ok(apiResponse);
     }
 }
