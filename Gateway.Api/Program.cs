@@ -31,6 +31,26 @@ namespace Gateway.Api
                         ValidateLifetime = true,
                         ClockSkew = TimeSpan.FromSeconds(30)
                     };
+
+                    options.Events = new JwtBearerEvents
+                    {
+                        OnChallenge = async context =>
+                        {
+                            context.HandleResponse(); // suppress default 401
+
+                            context.Response.StatusCode = 401;
+                            context.Response.ContentType = "text/html";
+
+                            var filePath = Path.Combine(
+                                context.HttpContext.RequestServices
+                                    .GetRequiredService<IWebHostEnvironment>()
+                                    .WebRootPath,
+                                "login.html"
+                            );
+
+                            await context.Response.SendFileAsync(filePath);
+                        }
+                    };
                 });
 
             builder.Services.AddAuthorization();
@@ -45,6 +65,8 @@ namespace Gateway.Api
             builder.Services.AddSwaggerGen();
 
             var app = builder.Build();
+
+            app.UseStaticFiles();
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
