@@ -38,6 +38,14 @@ namespace Gateway.Api
                         {
                             context.HandleResponse(); // suppress default 401
 
+                            var request = context.HttpContext.Request;
+
+                            var redirectTarget =
+                                request.Path + request.QueryString;
+
+                            var loginUrl =
+                                $"/login.html?redirect={Uri.EscapeDataString(redirectTarget)}";
+
                             context.Response.StatusCode = 401;
                             context.Response.ContentType = "text/html";
 
@@ -48,12 +56,17 @@ namespace Gateway.Api
                                 "login.html"
                             );
 
+                            context.Response.Redirect(loginUrl);
                             await context.Response.SendFileAsync(filePath);
                         }
                     };
                 });
 
-            builder.Services.AddAuthorization();
+            builder.Services.AddAuthorization(options =>
+            {
+                options.AddPolicy("authenticated", policy =>
+                    policy.RequireAuthenticatedUser());
+            });
 
             builder.Services
                 .AddReverseProxy()
@@ -80,8 +93,7 @@ namespace Gateway.Api
             app.UseAuthentication();
             app.UseAuthorization();
 
-            app.MapReverseProxy()
-                .RequireAuthorization();
+            app.MapReverseProxy();
 
             app.MapControllers();
 
